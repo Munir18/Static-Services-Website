@@ -53,7 +53,7 @@ A modern, responsive business website developed for **MediaK9 Studio**, showcasi
 ### Clone the repository
 
 ```bash
-git clone https://github.com/Munir18/mediak9-studio.git
+git clone https://github.com/Munir18/Static-Services-Website.git
 ```
 
 ### Open the project
@@ -70,7 +70,7 @@ For the contact form, run the project on a local server such as:
 Example:
 
 ```
-http://localhost/mediak9-studio/
+http://localhost/Static-Services-Website/
 ```
 
 ## 📧 Contact Form
