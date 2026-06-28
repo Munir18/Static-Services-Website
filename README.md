@@ -53,7 +53,7 @@ A modern, responsive business website developed for **MediaK9 Studio**, showcasi
 ### Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/mediak9-studio.git
+git clone https://github.com/Munir18/mediak9-studio.git
 ```
 
 ### Open the project
