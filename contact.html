@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Media K9</title>
+  <meta name="description"
+    content="Media K9 — Islamabad-based growth studio. We design brands and ship campaigns that compound.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/shared.css">
+  <link rel="stylesheet" href="assets/page.css">
+  <link rel="icon" href="logos/mediak9.png" type="image/png">
+  <script src="assets/components.js" defer></script>
+</head>
+
+<body data-page="contact">
+  <div class="bg-aurora" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-grain" aria-hidden="true"></div>
+  <div class="cur-dot" aria-hidden="true"></div>
+  <div class="cur-ring" aria-hidden="true"></div>
+  <header id="header-placeholder"></header>
+
+  <section class="p-hero">
+    <div class="badge">Contact · 01</div>
+    <h1 data-blur data-blur-stagger="0.06">Tell us<br><span class="accent">what you're</span><br>building.</h1>
+    <p class="lead fade-up">A short form, a real reply. We read everything that comes in. If we're a fit, you'll hear
+      from a partner inside two business days. If we're not, we'll point you somewhere we trust.</p>
+  </section>
+
+  <section class="contact glow-follow">
+    <div class="contact-grid">
+      <div class="c-info rv">
+        <div class="c-card">
+          <div class="c-l">Email</div><a href="mailto:mediak997@gmail.com" class="c-v">mediak997@gmail.com</a>
+        </div>
+        <div class="c-card">
+          <div class="c-l">Phone</div><a href="tel:+923345441307" class="c-v">+92 334 5441307</a>
+        </div>
+        <div class="c-card">
+          <div class="c-l">Office</div>
+          <p class="c-v" style="font-size:15px;line-height:1.4">Office #16, Green Plaza,<br>G-9 Markaz,<br>Islamabad,
+            Pakistan</p>
+        </div>
+        <div class="c-card">
+          <div class="c-l">Hours</div>
+          <p class="c-v" style="font-size:15px;line-height:1.4">Mon–Fri · 10:00 – 19:00 PKT<br>Sat · 11:00 – 16:00 PKT
+          </p>
+        </div>
+      </div>
+
+      <form class="c-form rv" id="contact-form">
+        <input type="hidden" name="form_type" value="contact">
+        <div class="c-row">
+          <label>Full name <input type="text" name="name" placeholder="Your name" required></label>
+          <label>Email <input type="email" name="email" placeholder="you@company.com" required></label>
+        </div>
+        <div class="c-row">
+          <label>Brand or company <input type="text" name="company" placeholder="Brand name"></label>
+          <label>Budget range
+            <select name="budget">
+              <option>Under $2K / month</option>
+              <option>$2K – $5K / month</option>
+              <option>$5K – $15K / month</option>
+              <option>$15K+ / month</option>
+              <option>One-off project</option>
+            </select>
+          </label>
+        </div>
+        <label>What you need
+          <select name="service">
+            <option>Brand strategy</option>
+            <option>Social & content</option>
+            <option>Performance ads</option>
+            <option>Web & product</option>
+            <option>CRM & lifecycle</option>
+            <option>Multiple — full stack</option>
+          </select>
+        </label>
+        <label>Tell us about it
+          <textarea name="message" rows="4" placeholder="Goals, timeline, where you're stuck. Plain language is fine."
+            required></textarea>
+        </label>
+        <div id="form-success"
+          style="display:none;padding:16px 20px;border:1px solid rgba(196,229,56,.3);border-radius:12px;background:rgba(196,229,56,.04);">
+          <p style="font-size:14px;color:var(--lime);font-weight:600;margin-bottom:4px;">Message received.</p>
+          <p style="font-size:13px;color:var(--cream-dim);">We'll be in touch within two business days.</p>
+        </div>
+        <button type="submit" class="btn btn-pri" style="width:fit-content">Send <span class="arr">→</span></button>
+        <p
+          style="font-size:10px;color:var(--cream-muted);font-family:'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase">
+          Reply within 2 business days · No spam</p>
+      </form>
+      <script>
+        document.getElementById('contact-form').addEventListener('submit', async function (e) {
+          e.preventDefault();
+          const btn = this.querySelector('[type="submit"]');
+          const originalText = btn.innerHTML;
+          btn.disabled = true;
+          btn.innerHTML = 'Sending…';
+
+          try {
+            const data = new FormData(this);
+            const res = await fetch('send-mail.php', { method: 'POST', body: data });
+            const json = await res.json();
+
+            if (json.success) {
+              document.getElementById('form-success').style.display = 'block';
+              btn.style.display = 'none';
+              document.getElementById('contact-form').querySelector('[style*="No spam"]').style.display = 'none';
+            } else {
+              alert('Something went wrong. Please try again.');
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            }
+          } catch (err) {
+            alert('Connection error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+          }
+        });
+      </script>
+    </div>
+  </section>
+
+  <section class="cta" style="padding-top:80px">
+    <div class="cta-inner">
+      <div class="badge" style="justify-content:center;margin:0 auto 18px">Or skip the form</div>
+      <h2 data-blur data-blur-stagger="0.05">Just <span class="accent">call.</span></h2>
+      <div class="cta-actions">
+        <a href="tel:+923345441307" class="btn btn-pri">+92 334 5441307 <span class="arr">→</span></a>
+        <a href="mailto:mediak997@gmail.com" class="btn btn-sec">Email instead</a>
+      </div>
+    </div>
+  </section>
+  <footer id="footer-placeholder"></footer>
+  <script src="assets/app.js" defer></script>
+</body>
+
+</html>

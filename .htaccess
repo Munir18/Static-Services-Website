@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Unless directory, rewrite to add .html if file exists
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*)$ $1.html [NC,L]

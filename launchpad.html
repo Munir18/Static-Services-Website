@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media K9 – Brand Launchpad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="assets/shared.css">
+  <link rel="stylesheet" href="assets/page.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="assets/components.js" defer></script>
+  <script src="assets/app.js" defer></script>
+
+  <style>
+    /* Safely scoped reset with zero specificity so it doesn't override padding/margins */
+    :where(#mediak9-launchpad-wrapper) *,
+    :where(#mediak9-launchpad-wrapper) *::before,
+    :where(#mediak9-launchpad-wrapper) *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --accent: #CFDC34;
+      --bg: #080808;
+      --cream: #F2EAD3;
+      --forest: #344F1F;
+      --muted: rgba(249, 245, 240, 0.55);
+      --faint: rgba(249, 245, 240, 0.2);
+      --border: rgba(249, 245, 240, 0.08);
+      --Marmalade: #F4991A;
+      --f: 'Space Grotesk', sans-serif;
+      --h: 'Space Grotesk', sans-serif;
+    }
+
+    #mediak9-launchpad-wrapper {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: var(--f);
+      overflow-x: hidden;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+
+      /* Full-bleed CSS hack */
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
+    }
+
+    #mediak9-launchpad-wrapper a {
+      text-decoration: none !important;
+    }
+
+    #mediak9-launchpad-wrapper ::selection {
+      background: var(--Marmalade);
+      color: var(--bg);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--faint);
+      border-radius: 10px;
+    }
+
+    /* CANVAS */
+    .canvas-container {
+      position: fixed;
+      top: 90px;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .canvas-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(207, 220, 52, 0.08) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 1.5s ease;
+      z-index: 0;
+    }
+
+    #hero-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ══════════════════════════════════════════
+       THE REAL FIX:
+       Each section has its OWN tall wrapper (200vh)
+       with ONE sticky panel inside it.
+       This means each panel sticks INDEPENDENTLY —
+       no fighting, no blanking out.
+       ══════════════════════════════════════════ */
+    .panel-wrap {
+      position: relative;
+      z-index: 2;
+      height: 200vh;
+    }
+
+    .panel {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 10%;
+
+      /* Hidden by default — revealed by IntersectionObserver */
+      opacity: 0;
+      filter: blur(14px);
+      transform: translateY(48px);
+      transition:
+        opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Visible state */
+    .panel.visible {
+      opacity: 1;
+      filter: blur(0px);
+      transform: translateY(0px);
+    }
+
+    /* TYPOGRAPHY */
+    .eyebrow {
+      font-size: clamp(10px, 2vw, 24px);
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--Marmalade);
+      margin-bottom: 24px;
+    }
+
+    h1,
+    h2 {
+      font-family: var(--h);
+      font-weight: 800;
+      line-height: 0.9;
+      color: var(--cream);
+    }
+
+    .sub {
+      font-size: 20px;
+      color: var(--cream);
+      line-height: 1.6;
+      max-width: 600px;
+    }
+
+    .active {
+      opacity: 0.6;
+    }
+
+    strong {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* CARDS */
+    .card {
+      background: rgba(15, 15, 15, 0.65);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid rgba(249, 245, 240, 0.09);
+      border-radius: 24px;
+      padding: 40px;
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(249, 245, 240, 0.03);
+    }
+
+    .card:hover {
+      border-color: rgba(52, 79, 31, 0.6);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(52, 79, 31, 0.15);
+      transform: translateY(-5px);
+    }
+
+    .card-line {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 18px;
+    }
+
+    .card-label {
+      font-size: clamp(10px, 2vw, 24px);
+      text-align: center;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--Marmalade);
+      margin-bottom: 16px;
+    }
+
+    .card-big {
+      font-family: var(--h);
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      line-height: 1.2;
+      color: var(--Marmalade);
+    }
+
+    .card-small {
+      font-size: 14px;
+      color: var(--cream);
+      line-height: 1.6;
+    }
+
+    .card-small .ac {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .card-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .card-list li {
+      font-size: 13px;
+      color: var(--cream);
+      padding-left: 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .card-list li:hover {
+      color: var(--cream);
+    }
+
+    .card-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 5px;
+      height: 5px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .card-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .card-dots span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .card-dots span.active {
+      background: var(--cream);
+    }
+
+    .build-rows {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .build-rows li {
+      font-size: clamp(12px, 2vw, 24px);
+      text-align: center;
+      font-weight: 700;
+      color: var(--cream);
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(52, 79, 31, 0.35);
+    }
+
+    .build-rows li:last-child {
+      border-bottom: none;
+    }
+
+    /* BUTTON — Glowing Hover */
+    .mk9-btn {
+      padding: 15px 40px;
+      border: none;
+      outline: none;
+      color: var(--cream);
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+      font-family: var(--f);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none !important;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mk9-btn::after {
+      content: "";
+      z-index: -1;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: #1a1a1a;
+      left: 0;
+      top: 0;
+      border-radius: 10px;
+      transition: background-color 0.3s;
+    }
+
+    /* glow */
+    .mk9-btn::before {
+      content: "";
+      background: linear-gradient(45deg,
+          #CFDC34, #344F1F, #CE2626, #CFDC34,
+          #F891BB, #344F1F, #F4991A, #CFDC34);
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      background-size: 600%;
+      z-index: -1;
+      width: calc(100% + 4px);
+      height: calc(100% + 4px);
+      filter: blur(8px);
+      animation: glowing 20s linear infinite;
+      transition: opacity 0.3s ease-in-out;
+      border-radius: 10px;
+      opacity: 0;
+    }
+
+    @keyframes glowing {
+      0% {
+        background-position: 0 0;
+      }
+
+      50% {
+        background-position: 400% 0;
+      }
+
+      100% {
+        background-position: 0 0;
+      }
+    }
+
+    /* hover */
+    .mk9-btn:hover::before {
+      opacity: 1;
+    }
+
+    .mk9-btn:hover::after {
+      background-color: #222;
+    }
+
+    .mk9-btn:hover {
+      transform: scale(1.03) translateY(-2px);
+    }
+
+    /* active (click) */
+    .mk9-btn:active::after,
+    .mk9-btn-submit:active::after {
+      background: transparent;
+    }
+
+    .mk9-btn:active,
+    .mk9-btn-submit:active {
+      color: #000;
+      font-weight: bold;
+    }
+
+    /* FORM */
+    .form-section {
+      position: relative;
+      z-index: 10;
+      background: var(--bg);
+      padding: 160px 24px;
+    }
+
+    .form-wrap {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .field {
+      margin-bottom: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+    }
+
+    .field input[type="text"],
+    .field input[type="email"],
+    .field textarea {
+      background: rgba(249, 245, 240, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      color: var(--cream);
+      font-family: var(--f);
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .field input[type="text"]:focus,
+    .field input[type="email"]:focus,
+    .field textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(207, 220, 52, 0.08);
+      box-shadow: 0 0 20px rgba(207, 220, 52, 0.1);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .mk9-btn-submit {
+      position: relative;
+      width: 100%;
+      background: transparent;
+      color: var(--cream);
+      padding: 22px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-family: var(--f);
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.3s;
+      z-index: 1;
+    }
+
+    .mk9-btn-submit::after {
+      content: "";
+      z-index: -1;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: #1a1a1a;
+      left: 0;
+      top: 0;
+      border-radius: 10px;
+      transition: background-color 0.3s;
+    }
+
+    .mk9-btn-submit::before {
+      content: "";
+      background: linear-gradient(45deg,
+          #CFDC34, #344F1F, #CE2626, #CFDC34,
+          #F891BB, #344F1F, #F4991A, #CFDC34);
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      background-size: 600%;
+      z-index: -1;
+      width: calc(100% + 4px);
+      height: calc(100% + 4px);
+      filter: blur(8px);
+      animation: glowing 20s linear infinite;
+      transition: opacity 0.3s ease-in-out;
+      border-radius: 10px;
+      opacity: 0;
+    }
+
+    .mk9-btn-submit:hover::before {
+      opacity: 1;
+    }
+
+    .mk9-btn-submit:hover::after {
+      background-color: #222;
+    }
+
+    .mk9-btn-submit:hover {
+      transform: translateY(-2px);
+    }
+
+    .submit-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .submit-note {
+      font-size: 12px;
+      color: var(--faint);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    .form-success {
+      display: none;
+      text-align: center;
+      padding: 80px 40px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 30px;
+    }
+
+    /* NEW SECTIONS */
+    .new-sections-wrapper {
+      position: relative;
+      z-index: 10;
+      background: var(--bg);
+      overflow: hidden;
+      border-top: 1px solid rgba(52, 79, 31, 0.3);
+    }
+
+    .excl-section {
+      padding: 140px 60px 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 70px;
+    }
+
+    .excl-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--Marmalade);
+      text-align: center;
+    }
+
+    .excl-headline {
+      font-family: var(--h);
+      font-size: clamp(52px, 8vw, 110px);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      text-align: center;
+      color: var(--cream);
+    }
+
+    .excl-headline span.accent {
+      color: var(--accent);
+    }
+
+    .excl-headline span.muted {
+      color: var(--forest);
+    }
+
+    .excl-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .excl-card {
+      position: relative;
+      border-radius: 28px;
+      padding: 40px 36px 44px;
+      background: rgba(249, 245, 240, 0.03);
+      backdrop-filter: blur(60px) saturate(200%);
+      -webkit-backdrop-filter: blur(60px) saturate(200%);
+      border: 1px solid rgba(249, 245, 240, 0.07);
+      overflow: hidden;
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+    }
+
+    .excl-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(177, 0, 232, 0.35);
+    }
+
+    .excl-card.highlight {
+      background: rgba(52, 79, 31, 0.12);
+      border-color: rgba(52, 79, 31, 0.4);
+      box-shadow: 0 0 80px rgba(52, 79, 31, 0.15), inset 0 0 40px rgba(207, 220, 52, 0.03);
+    }
+
+    .excl-card-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--Marmalade);
+      margin-bottom: 22px;
+    }
+
+    .excl-card-tag span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--Marmalade);
+      box-shadow: 0 0 8px var(--Marmalade);
+      flex-shrink: 0;
+    }
+
+    .excl-card.accent-tag .excl-card-tag {
+      color: var(--accent);
+    }
+
+    .excl-card.accent-tag .excl-card-tag span.dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .excl-card-title {
+      font-family: var(--h);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1.15;
+      margin: 20px;
+      color: var(--cream);
+    }
+
+    .excl-big-number {
+      font-family: var(--h);
+      font-size: 86px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      color: var(--Marmalade);
+      margin-bottom: 8px;
+    }
+
+    .process-section {
+      padding: 60px 60px 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 60px;
+    }
+
+    .process-eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--cream);
+      text-align: center;
+      opacity: 0.7;
+    }
+
+    .process-headline {
+      font-family: var(--h);
+      font-size: clamp(40px, 5vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      text-align: center;
+      color: var(--cream);
+    }
+
+    .process-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      width: 100%;
+      max-width: 900px;
+      position: relative;
+    }
+
+    .process-steps::after {
+      content: '';
+      position: absolute;
+      top: 45px;
+      left: 45px;
+      right: 45px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(52, 79, 31, 0.5), rgba(207, 220, 52, 0.5), rgba(52, 79, 31, 0.5));
+      z-index: 0;
+    }
+
+    .process-step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .process-circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: rgba(52, 79, 31, 0.15);
+      border: 1px solid rgba(52, 79, 31, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--h);
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent);
+      box-shadow: 0 0 40px rgba(52, 79, 31, 0.25), inset 0 0 15px rgba(207, 220, 52, 0.05);
+      transition: transform 0.4s, box-shadow 0.4s;
+    }
+
+    .process-step:hover .process-circle {
+      transform: scale(1.1);
+      box-shadow: 0 0 60px rgba(52, 79, 31, 0.4), 0 0 30px rgba(207, 220, 52, 0.15);
+    }
+
+    .process-step-label {
+      font-family: var(--h);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--cream);
+    }
+
+    .process-step-sub {
+      font-size: 13px;
+      color: var(--cream);
+      line-height: 1.5;
+      max-width: 180px;
+    }
+
+    .glow-divider {
+      width: 100%;
+      height: 2px;
+      max-width: 1100px;
+      margin: 0 auto;
+      background: linear-gradient(90deg, transparent, rgba(52, 79, 31, 0.6), var(--accent), rgba(52, 79, 31, 0.6), transparent);
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE: LAPTOP (≤1200px)
+       ══════════════════════════════════════════ */
+    @media (max-width: 1200px) {
+      .panel {
+        padding: 0 6%;
+      }
+
+      .excl-section {
+        padding: 100px 40px 80px;
+      }
+
+      .process-section {
+        padding: 50px 40px 100px;
+      }
+
+      .excl-cards {
+        gap: 18px;
+        max-width: 960px;
+      }
+
+      .excl-card {
+        padding: 32px 28px 36px;
+      }
+
+      .excl-card-title {
+        font-size: 24px;
+      }
+
+      .excl-big-number {
+        font-size: 70px;
+      }
+
+      .form-section {
+        padding: 120px 24px;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE: TABLET (≤900px)
+       ══════════════════════════════════════════ */
+    @media (max-width: 900px) {
+      .panel {
+        padding: 0 5%;
+      }
+
+      .panel>div[style*="display:flex"],
+      .panel>div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        justify-content: center !important;
+        gap: 30px !important;
+        width: 100% !important;
+      }
+
+      .card {
+        width: 100% !important;
+        max-width: 420px;
+        height: auto !important;
+        padding: 32px;
+        box-sizing: border-box;
+        margin: 0 auto;
+      }
+
+      .excl-cards {
+        grid-template-columns: 1fr;
+        max-width: 480px;
+      }
+
+      .excl-section,
+      .process-section {
+        padding: 80px 24px;
+      }
+
+      .process-steps {
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+      }
+
+      .process-steps::after {
+        display: none;
+      }
+
+      .process-circle {
+        width: 75px;
+        height: 75px;
+        font-size: 24px;
+      }
+
+      #panel-rebuild>div {
+        padding: 60px 40px !important;
+        border-radius: 36px !important;
+      }
+
+      .sub {
+        font-size: 18px !important;
+        max-width: 100%;
+      }
+
+      .form-section {
+        padding: 80px 20px;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE: MOBILE (≤768px)
+       ══════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      #mediak9-launchpad-wrapper {
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .canvas-container {
+        top: 0;
+        opacity: 0.35;
+      }
+
+      .panel-wrap {
+        height: auto !important;
+        margin-bottom: 0;
+      }
+
+      .panel {
+        position: relative !important;
+        height: auto !important;
+        min-height: 80vh;
+        padding: 80px 6% 60px;
+        opacity: 1 !important;
+        filter: blur(0px) !important;
+        transform: translateY(0) !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .panel>div[style*="display:flex"],
+      .panel>div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        justify-content: center !important;
+        gap: 30px !important;
+        width: 100% !important;
+        margin-top: 0 !important;
+      }
+
+      .card {
+        width: 100% !important;
+        max-width: 100%;
+        height: auto !important;
+        padding: 28px 24px;
+        box-sizing: border-box;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: clamp(44px, 12vw, 72px) !important;
+        line-height: 1 !important;
+      }
+
+      h2 {
+        font-size: clamp(32px, 9vw, 52px) !important;
+        line-height: 1.1 !important;
+      }
+
+      .sub {
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+      }
+
+      .eyebrow {
+        margin-bottom: 12px;
+        font-size: clamp(10px, 3vw, 14px) !important;
+      }
+
+      .active {
+        opacity: 1;
+      }
+
+      /* "The Problem" oversized eyebrow fix */
+      #panel-problem .eyebrow {
+        font-size: clamp(32px, 10vw, 52px) !important;
+        line-height: 1.1 !important;
+      }
+
+      /* "Media K9 Offers" shift panel glass box */
+      #panel-shift>div>div:first-child {
+        padding: 28px 20px !important;
+        border-radius: 20px !important;
+      }
+
+      #panel-rebuild>div {
+        padding: 40px 20px !important;
+        border-radius: 24px !important;
+      }
+
+      .mk9-btn,
+      .mk9-btn-submit {
+        width: 100%;
+        text-align: center;
+        padding: 16px 20px;
+        box-sizing: border-box;
+        font-size: 12px;
+      }
+
+      .excl-headline {
+        font-size: clamp(36px, 10vw, 52px) !important;
+      }
+
+      .excl-headline span {
+        font-size: clamp(36px, 10vw, 52px) !important;
+      }
+
+      .excl-card {
+        padding: 30px 24px 34px;
+      }
+
+      .excl-card-title {
+        font-size: 22px !important;
+        margin-bottom: 14px;
+      }
+
+      .excl-big-number {
+        font-size: 64px;
+      }
+
+      .card-big {
+        font-size: 22px;
+      }
+
+      .card-label {
+        font-size: clamp(10px, 3vw, 18px);
+      }
+
+      .build-rows li {
+        font-size: clamp(14px, 4vw, 20px);
+        padding: 10px 0;
+      }
+
+      .card-list li {
+        font-size: 14px;
+      }
+
+      .form-section {
+        padding: 60px 16px;
+      }
+
+      .form-wrap {
+        max-width: 100%;
+      }
+
+      .field input[type="text"],
+      .field input[type="email"],
+      .field textarea {
+        padding: 16px;
+        font-size: 15px;
+      }
+
+      .process-section {
+        padding: 60px 20px;
+        gap: 36px;
+      }
+
+      .process-headline {
+        font-size: clamp(32px, 8vw, 48px) !important;
+      }
+
+      .process-circle {
+        width: 70px;
+        height: 70px;
+        font-size: 22px;
+      }
+
+      .process-step-label {
+        font-size: 17px;
+      }
+
+      .process-step-sub {
+        font-size: 13px;
+        max-width: 240px;
+      }
+
+      .glow-divider {
+        max-width: 90%;
+      }
+
+      .new-sections-wrapper {
+        border-top: none;
+      }
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE: SMALL MOBILE (≤480px)
+       ══════════════════════════════════════════ */
+    @media (max-width: 480px) {
+      .panel {
+        padding: 60px 5% 40px;
+        min-height: 70vh;
+      }
+
+      h1 {
+        font-size: clamp(36px, 11vw, 56px) !important;
+        letter-spacing: -0.03em !important;
+      }
+
+      h2 {
+        font-size: clamp(28px, 8vw, 44px) !important;
+      }
+
+      .sub {
+        font-size: 15px !important;
+      }
+
+      #panel-problem .eyebrow {
+        font-size: clamp(28px, 9vw, 40px) !important;
+      }
+
+      .card {
+        padding: 24px 20px;
+      }
+
+      .card-big {
+        font-size: 20px;
+      }
+
+      .excl-headline {
+        font-size: clamp(30px, 9vw, 42px) !important;
+      }
+
+      .excl-headline span {
+        font-size: clamp(30px, 9vw, 42px) !important;
+      }
+
+      .excl-big-number {
+        font-size: 52px;
+      }
+
+      .excl-card-title {
+        font-size: 20px !important;
+      }
+
+      .excl-card-tag {
+        font-size: 9px;
+      }
+
+      #panel-rebuild>div {
+        padding: 32px 16px !important;
+        border-radius: 20px !important;
+      }
+
+      .mk9-btn,
+      .mk9-btn-submit {
+        font-size: 11px;
+        padding: 14px 16px;
+        letter-spacing: 0.08em;
+      }
+
+      .form-section {
+        padding: 40px 12px;
+      }
+
+      .field label {
+        font-size: 10px;
+      }
+
+      .field input[type="text"],
+      .field input[type="email"],
+      .field textarea {
+        padding: 14px;
+        font-size: 14px;
+        border-radius: 10px;
+      }
+
+      .process-circle {
+        width: 60px;
+        height: 60px;
+        font-size: 20px;
+      }
+
+      .process-step-label {
+        font-size: 16px;
+      }
+
+      .excl-section {
+        gap: 40px;
+      }
+
+      .excl-eyebrow {
+        font-size: 10px;
+      }
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-6px);
+      }
+
+      60% {
+        transform: translateX(6px);
+      }
+    }
+
+    /* ELEMENTOR OVERRIDE PROTECTIONS */
+    #mediak9-launchpad-wrapper h1,
+    #mediak9-launchpad-wrapper h2,
+    #mediak9-launchpad-wrapper h3,
+    #mediak9-launchpad-wrapper .sub,
+    #mediak9-launchpad-wrapper .card-small,
+    #mediak9-launchpad-wrapper ul li,
+    #mediak9-launchpad-wrapper .excl-headline,
+    #mediak9-launchpad-wrapper .excl-card-title,
+    #mediak9-launchpad-wrapper .process-headline,
+    #mediak9-launchpad-wrapper .process-step-label,
+    #mediak9-launchpad-wrapper .process-step-sub,
+    #mediak9-launchpad-wrapper input,
+    #mediak9-launchpad-wrapper textarea,
+    #mediak9-launchpad-wrapper label,
+    #mediak9-launchpad-wrapper .mk9-btn,
+    #mediak9-launchpad-wrapper .mk9-btn-submit {
+      color: var(--cream) !important;
+    }
+
+    #mediak9-launchpad-wrapper h1,
+    #mediak9-launchpad-wrapper h2,
+    #mediak9-launchpad-wrapper h3,
+    #mediak9-launchpad-wrapper .excl-headline,
+    #mediak9-launchpad-wrapper .excl-card-title,
+    #mediak9-launchpad-wrapper .process-headline,
+    #mediak9-launchpad-wrapper .process-step-label {
+      font-family: var(--h) !important;
+    }
+
+    #mediak9-launchpad-wrapper .sub,
+    #mediak9-launchpad-wrapper .card-small,
+    #mediak9-launchpad-wrapper ul li,
+    #mediak9-launchpad-wrapper .process-step-sub,
+    #mediak9-launchpad-wrapper input,
+    #mediak9-launchpad-wrapper textarea,
+    #mediak9-launchpad-wrapper label,
+    #mediak9-launchpad-wrapper .mk9-btn,
+    #mediak9-launchpad-wrapper .mk9-btn-submit {
+      font-family: var(--f) !important;
+    }
+
+    #mediak9-launchpad-wrapper .eyebrow,
+    #mediak9-launchpad-wrapper .card-label,
+    #mediak9-launchpad-wrapper .card-big,
+    #mediak9-launchpad-wrapper .excl-eyebrow,
+    #mediak9-launchpad-wrapper .excl-big-number,
+    #mediak9-launchpad-wrapper .excl-card-tag {
+      color: var(--Marmalade) !important;
+    }
+
+    #mediak9-launchpad-wrapper .excl-headline span.accent,
+    #mediak9-launchpad-wrapper .process-circle,
+    #mediak9-launchpad-wrapper .card-small .ac {
+      color: var(--accent) !important;
+    }
+
+    /* ══════════════════════════════════════════
+       ELEMENTOR HEADER PROTECTIONS
+       ══════════════════════════════════════════ */
+    #masthead,
+    .elementor-location-header,
+    div[data-elementor-type="jkit-header"] {
+      background-color: var(--bg) !important;
+      z-index: 999999 !important;
+      position: relative;
+      border-bottom: 1px solid rgba(249, 245, 240, 0.05) !important;
+    }
+
+    footer {
+      background-color: #080808 !important;
+      position: relative;
+      z-index: 10 !important;
+      border-top: 1px solid rgba(249, 245, 240, 0.08) !important;
+    }
+  </style>
+</head>
+
+<body data-page="launchpad">
+
+  <!-- Background decorations (matching rest of site) -->
+  <div class="bg-aurora" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-grain" aria-hidden="true"></div>
+  <div class="cur-dot" aria-hidden="true"></div>
+  <div class="cur-ring" aria-hidden="true"></div>
+
+  <!-- Dynamic Header Navigation -->
+  <header id="header-placeholder"></header>
+
+  <div id="mediak9-launchpad-wrapper">
+
+    <div class="canvas-container">
+      <div class="canvas-glow" id="bg-glow"></div>
+      <canvas id="hero-canvas"></canvas>
+    </div>
+
+    <div class="panel-wrap" id="wrap-overview" style="height:150vh;">
+      <div class="panel visible" id="panel-overview">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:40px; margin-top: 20vh;">
+          <div>
+            <div class="eyebrow">Posting and Engagement</div>
+            <h1 style="font-size:clamp(80px,12vw,160px); letter-spacing:-0.05em;">Still Zero <span
+                style="color: var(--accent);">?</span></h1>
+            <p class="sub" style="font-size:28px; margin-top:20px; font-weight:300;">From Consistent Posting on Socials
+              To Getting Real-Time Engagement Online<br><span style="color:var(--Marmalade); font-weight:700;">You can
+                get
+                Strategy, Planning and Execution at Media K9.</span></p>
+            <a href="#apply" class="mk9-btn" style="margin-top:40px;">Book Before Offer Expires</a>
+          </div>
+          <div class="card hide-mobile" style="width:320px; flex-shrink:0;">
+            <div class="card-line"></div>
+            <div class="card-big">Quit <br>Traditional<br>Posting and Marketing Strategies and <br> Be Different.</div>
+            <p class="card-small">Offering online services to startups and big brands for trial period.<br><span
+                class="ac">Only Two Slots</span> </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-wrap" id="wrap-problem">
+      <div class="panel" id="panel-problem" style="justify-content:center;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; width:100%; position:relative; z-index:1; gap:40px;">
+          <div style="max-width: 500px;">
+            <div class="eyebrow"
+              style="color:var(--Marmalade);font-size: clamp(52px, 8vw, 110px); font-weight: 800;font-family:var(--h);line-height: 0.9 !important;">
+              The
+              Problem</div>
+            <p class="sub"
+              style="margin-top:20px; font-size:clamp(24px,3vw,36px); line-height:1.35; font-weight:400; color:var(--cream);">
+              Daily Posting Doesn't Remove You From Ghost Mode<br>
+
+              <span style="color:var(--accent); font-weight:700;">The algorithm is hungry for real-time content, so are
+                the users in front of the screen!
+              </span>
+            </p>
+          </div>
+          <div class="card" style="width:340px; flex-shrink:0;">
+            <div class="card-line"></div>
+            <div class="card-big">No Organic <br>Traffic equals</div>
+            <ul class="card-list">
+              <li>No Brand Image</li>
+              <li>No Competitive Edge</li>
+              <li>No Returning Customer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-wrap" id="wrap-shift">
+      <div class="panel" id="panel-shift">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; gap:40px;">
+
+          <div
+            style="max-width: 650px; background: rgba(8, 8, 8, 0.4); padding: 40px; border-radius: 24px; backdrop-filter: blur(15px); border: 1px solid rgba(249, 245, 240, 0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="eyebrow" style="font-size: clamp(20px, 3vw, 32px); font-weight: 800; color: var(--Marmalade);">
+              Media K9 Offers
+            </div>
+            <h2 style="font-size:clamp(40px,6vw,50px); line-height:1.05;">Services From Online<br>Business Consultation
+              to Ready to Implement Strategy
+            </h2>
+            <h2
+              style="font-size:clamp(28px,4vw,50px);color:var(--accent) !important; margin-top:20px; line-height:1.15;">
+              Lets Work Together to Turn Your Business Into a Brand</h2>
+          </div>
+
+          <div class="card" style="width:280px; height:400px; flex-shrink:0;">
+            <div class="card-label">We build</div>
+            <ul class="build-rows">
+              <li>Brand positioning</li>
+              <li>Content systems</li>
+              <li>Growth structure</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-wrap" id="wrap-solution">
+      <div class="panel" id="panel-solution">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; width:100%; gap:40px;">
+          <div>
+            <div class="eyebrow">Full Execution</div>
+            <h2 style="font-size:clamp(80px,10vw,130px);">Built<br><span style="color:var(--accent);">By</span> Us.
+            </h2>
+          </div>
+          <div class="card" style="width:340px; flex-shrink:0;">
+            <div class="card-line"></div>
+            <div class="card-big">Selected<br>brands get</div>
+            <ul class="card-list">
+              <li>Clear brand strategy</li>
+              <li>Content direction</li>
+              <li>Professional execution</li>
+              <li>Growth system</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section id="rebuild">
+      <div class="panel-wrap" id="wrap-rebuild" style="height:150vh;">
+        <div class="panel" id="panel-rebuild" style="justify-content:center; text-align:center;">
+          <div
+            style="background: rgba(0,0,0,0.55); padding: 80px 100px; border-radius: 60px; backdrop-filter: blur(20px); border: 1px solid rgba(52,79,31,0.3); box-shadow: 0 40px 100px rgba(0,0,0,0.5), inset 0 0 60px rgba(52,79,31,0.05);">
+            <div class="eyebrow">Selection Required</div>
+            <h2 style="font-size:clamp(80px,12vw,180px); letter-spacing:-0.05em; color: var(--cream);">REBUILT.</h2>
+            <p class="sub" style="font-size:26px; margin:40px auto; opacity:0.9; color: var(--cream);">Most people will
+              scroll past
+              this.<br><strong>Some will apply.</strong> Only a few will be selected.</p>
+            <a href="#apply" class="mk9-btn">APPLY FOR THE SYSTEM</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="new-sections-wrapper">
+      <section class="excl-section">
+        <div class="excl-eyebrow">Selection Only</div>
+        <div class="excl-headline">Be The Lucky One<br><span
+            style="font-size:clamp(52px, 8vw, 100px);line-height: 1.1;">Limited Slots</span><br><span class="accent">for
+            brands.</span></div>
+        <div class="excl-cards">
+
+          <div class="excl-card highlight">
+            <div class="excl-card-tag">Limited Time Offer</div>
+            <div class="excl-big-number" style="padding-left: 10px;">02</div>
+            <div
+              style="font-family: var(--h); font-size: 28px; font-weight: 800; line-height: 1.15; margin-bottom: 20px; color: var(--cream); padding-left: 10px;">
+              Spots<br>Available</div>
+            <p style="font-size:14px; color:var(--muted); line-height:1.6; padding-left: 10px;">We will practically
+              implement strategies and
+              work on your brand visibility</p>
+          </div>
+
+          <div class="excl-card">
+            <div class="excl-card-tag" style="color:rgba(255,80,80,0.8);">Best for</div>
+            <div class="excl-card-title"> Businesses Ready To Become Brands, and for those who want to make an actual
+              impression</div>
+          </div>
+          <div class="excl-card accent-tag">
+            <div class="excl-card-tag">Online Services fo</div>
+            <div class="excl-card-title">Selective Brands with a vision <br>to become a <br>Good and Renowned Name in
+              future
+            </div>
+          </div>
+        </div>
+      </section>
+      <div class="glow-divider"></div>
+      <section class="process-section">
+        <div class="process-eyebrow">How It Works</div>
+        <div class="process-headline">Simple.<br><span style="color:var(--accent);">Three steps.</span></div>
+        <div class="process-steps">
+          <div class="process-step">
+            <div class="process-circle">01</div>
+            <div class="process-step-label">Apply</div>
+            <p class="process-step-sub">Fill out the application below.</p>
+          </div>
+          <div class="process-step">
+            <div class="process-circle">02</div>
+            <div class="process-step-label">We Review</div>
+            <p class="process-step-sub">We go through every application personally.</p>
+          </div>
+          <div class="process-step">
+            <div class="process-circle">03</div>
+            <div class="process-step-label">We Select</div>
+            <p class="process-step-sub">Two brands. Full transformation. Entirely managed.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="form-section" id="apply">
+      <div class="form-wrap">
+        <div style="text-align:center; margin-bottom:60px;">
+          <div class="eyebrow">Contest Form</div>
+          <h2 style="font-size:clamp(48px,6vw,72px); line-height:1.0;">Apply for<br>Launchpad</h2>
+          <p class="sub" style="margin:20px auto; font-size:18px;color:var(--accent);">Only 2 brands will be selected.
+            Make your application
+            count.</p>
+        </div>
+
+        <form id="theForm" class="card" style="background:rgba(15,15,15,0.9); border-color: var(--accent);"
+          enctype="multipart/form-data">
+          <input type="hidden" name="form_type" value="launchpad">
+
+          <div class="field-row">
+            <div class="field"><label>Name</label><input type="text" id="f-name" placeholder="Your full name"
+                autocomplete="off"></div>
+            <div class="field"><label>Email Address</label><input type="email" id="f-email" placeholder="you@domain.com"
+                autocomplete="off"></div>
+          </div>
+
+          <div class="field-row">
+            <div class="field"><label>Brand Name</label><input type="text" id="f-brand" placeholder="Your brand name"
+                autocomplete="off"></div>
+            <div class="field"><label>Instagram / Website</label><input type="text" id="f-link"
+                placeholder="@handle or yoursite.com" autocomplete="off"></div>
+          </div>
+
+          <div class="field"><label>What do you sell?</label><textarea id="f-sell"
+              placeholder="Describe your product or service briefly…" rows="4"></textarea></div>
+          <div class="field"><label>Why should we select you?</label><textarea id="f-why"
+              placeholder="Tell us what makes your brand worth transforming…" rows="4"></textarea></div>
+
+          <div class="field">
+            <label>Proof of Follow (Optional - Multiple Allowed)</label>
+            <input type="file" id="f-proof" name="proof_file[]" accept="image/png, image/jpeg, image/jpg" multiple
+              style="padding: 16px; cursor: pointer; border-style: dashed; border-color: rgba(249, 245, 240, 0.2); background: rgba(249, 245, 240, 0.02);">
+          </div>
+
+          <div class="submit-row">
+            <p class="submit-note">We review every application. Only serious founders need apply.</p>
+
+            <button type="submit" id="submit-btn" class="mk9-btn-submit">Submit Application</button>
+          </div>
+        </form>
+
+        <div id="formSuccess" class="form-success">
+          <div class="success-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <h3 style="font-size:40px; margin-bottom:20px; font-family:var(--h);">Application Sent.</h3>
+          <p class="sub" style="margin:0 auto;">We'll review it and reach out if you're a fit for the Launchpad.</p>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      @media (max-width:1024px) {
+        .hide-mobile {
+          display: none !important;
+        }
+      }
+    </style>
+
+    <script>
+      gsap.registerPlugin(ScrollTrigger);
+
+      /* ── CANVAS ── */
+      const canvas = document.getElementById("hero-canvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const frameCount = 479;
+      // Load local WebP frames
+      const currentFrame = i => `frames/mediak9video - ${i.toString().padStart(3, "0")}.webp`;
+      const images = [];
+      const airplay = { frame: 0 };
+
+      for (let i = 0; i < frameCount; i++) {
+        const img = new Image();
+        img.src = currentFrame(i);
+        images.push(img);
+      }
+
+      const glow = document.getElementById("bg-glow");
+
+      // Canvas scrubs until the last panel ends
+      gsap.to(airplay, {
+        frame: frameCount - 1,
+        snap: "frame",
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#mediak9-launchpad-wrapper",
+          start: "top top",
+          end: () => `+=${document.getElementById("wrap-rebuild").offsetTop + document.getElementById("wrap-rebuild").offsetHeight}`,
+          scrub: 0.5,
+          onUpdate: self => {
+            glow.style.opacity = Math.sin(self.progress * Math.PI) * 0.8;
+          }
+        },
+        onUpdate: () => render(images[airplay.frame])
+      });
+
+      images[0].onload = () => render(images[0]);
+
+      function render(img) {
+        if (!img || !img.naturalWidth) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#080808";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        let scale = Math.max(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+
+        // On mobile, zoom out the frame slightly to reveal more horizontal action
+        if (window.innerWidth <= 768) {
+          const containScale = Math.min(canvas.width / img.naturalWidth, canvas.height / img.naturalHeight);
+          // Reduce the "cover" scale by 30% or stop at "contain" limit
+          scale = Math.max(containScale, scale * 0.70);
+        }
+
+        let dW = img.naturalWidth * scale;
+        let dH = img.naturalHeight * scale;
+        let dx = (canvas.width - dW) / 2;
+
+        // REVERTED to original math. CSS handles the position now.
+        let dy = (canvas.height - dH) / 2;
+
+        ctx.drawImage(img, dx, dy, dW, dH);
+      }
+
+      window.addEventListener("resize", () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        render(images[airplay.frame]);
+      });
+
+      /* ── PANEL VISIBILITY via IntersectionObserver ──
+         Each panel fades in when 30% of its sticky div
+         enters the viewport. Fades out on exit.
+         Hero panel stays visible always.
+      ── */
+      const panels = document.querySelectorAll(".panel");
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          } else if (entry.target.id !== "panel-overview") {
+            entry.target.classList.remove("visible");
+          }
+        });
+      }, { threshold: 0.3 });
+
+      panels.forEach(p => observer.observe(p));
+
+
+      /* ── NAVBAR SCROLL (FIXED) ── */
+      const navbar = document.getElementById('masthead');
+      window.addEventListener('scroll', () => {
+        if (navbar) {
+          if (window.scrollY > 80) {
+            navbar.classList.add('scrolled');
+          } else {
+            navbar.classList.remove('scrolled');
+          }
+        }
+      });
+
+      /* ── FORM ── */
+
+      const theForm = document.getElementById("theForm");
+
+      theForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        // Check if fields are entirely empty
+        const ids = ["f-name", "f-email", "f-brand", "f-link", "f-sell", "f-why"];
+        let ok = true;
+        ids.forEach(id => {
+          const el = document.getElementById(id);
+          if (!el.value.trim()) { shakeEl(el); ok = false; }
+        });
+        if (!ok) return;
+
+        // --- NEW STRICT VALIDATIONS ---
+
+        // 1. Name Validation (Alphabets and spaces only)
+        const nameEl = document.getElementById("f-name");
+        if (!/^[A-Za-z\s]+$/.test(nameEl.value.trim())) {
+          shakeEl(nameEl);
+          alert("Name can only contain alphabets.");
+          return;
+        }
+
+        // 2. Email Validation
+        const emailEl = document.getElementById("f-email");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
+          shakeEl(emailEl);
+          alert("Please enter a valid email address.");
+          return;
+        }
+
+        // 3. Brand Validation (At least 2 characters, must contain at least one letter)
+        const brandEl = document.getElementById("f-brand");
+        const brandVal = brandEl.value.trim();
+        if (brandVal.length < 2 || !/[a-zA-Z]/.test(brandVal)) {
+          shakeEl(brandEl);
+          alert("Please enter a valid Brand Name. It must contain letters (not just numbers).");
+          return;
+        }
+
+        // 4. Link Validation (No strict http required, just must contain at least one letter and minimum 2 chars)
+        const linkEl = document.getElementById("f-link");
+        const linkVal = linkEl.value.trim();
+        if (linkVal.length < 2 || !/[a-zA-Z]/.test(linkVal)) {
+          shakeEl(linkEl);
+          alert("Please enter a valid Instagram handle or Website link.");
+          return;
+        }
+
+        // 5. File Size Limitation (10MB Max across all files combined)
+        const fileInput = document.getElementById('f-proof');
+        if (fileInput.files.length > 0) {
+          let totalSize = 0;
+          for (let i = 0; i < fileInput.files.length; i++) {
+            totalSize += fileInput.files[i].size;
+          }
+          if (totalSize > 10 * 1024 * 1024) {
+            shakeEl(fileInput);
+            alert("Total file size exceeds 10MB. Please select smaller files.");
+            return;
+          }
+        }
+
+        // --- END VALIDATIONS ---
+
+        const btn = document.getElementById("submit-btn");
+        const originalText = btn.innerText;
+        btn.innerText = "SENDING...";
+        btn.style.opacity = "0.7";
+        btn.disabled = true;
+
+        let formData = new FormData();
+        formData.append('form_type', 'launchpad');
+        formData.append('name', nameEl.value);
+        formData.append('email', emailEl.value);
+        formData.append('brand', brandEl.value);
+        formData.append('link', linkEl.value);
+        formData.append('sell', document.getElementById('f-sell').value);
+        formData.append('why', document.getElementById('f-why').value);
+
+        // Loop through and append MULTIPLE files safely
+        if (fileInput.files.length > 0) {
+          for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('proof_file[]', fileInput.files[i]);
+          }
+        }
+
+        try {
+          let response = await fetch('send-mail.php', {
+            method: 'POST',
+            body: formData
+          });
+
+          let result = await response.json();
+
+          if (result.success) {
+            document.getElementById("theForm").style.display = "none";
+            document.getElementById("formSuccess").style.display = "block";
+          } else {
+            alert("Something went wrong on the server. Please try again.");
+            btn.innerText = originalText;
+            btn.style.opacity = "1";
+            btn.disabled = false;
+          }
+        } catch (error) {
+          alert("Connection error. Please try again.");
+          btn.innerText = originalText;
+          btn.style.opacity = "1";
+          btn.disabled = false;
+        }
+      });
+
+      function shakeEl(el) {
+        el.style.borderColor = "rgba(255,80,80,0.7)";
+        el.style.animation = "shake 0.35s ease";
+        setTimeout(() => { el.style.borderColor = ""; el.style.animation = ""; }, 400);
+      }
+    </script>
+
+  </div>
+
+  <!-- Dynamic Footer Navigation -->
+  <footer id="footer-placeholder"></footer>
+
+</body>
+
+</html>
